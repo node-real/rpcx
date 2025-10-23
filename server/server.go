@@ -1107,3 +1107,7 @@ func validIP6(ipAddress string) bool {
 		return false
 	}
 }
+
+func InjectHiPri(ctx context.Context) context.Context {
+	return context.WithValue(ctx, share.ReqMetaDataKey, map[string]string{HighPriorityKey: "true"})
+}
