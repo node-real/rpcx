@@ -42,6 +42,8 @@ const (
 
 	// // WriteChanSize is used for response.
 	// WriteChanSize = 1024 * 1024
+
+	HighPriorityKey = "is-high-priority-request"
 )
 
 // contextKey is a value for use with context.WithValue. It's used as
@@ -65,6 +67,9 @@ var (
 	TagContextKey = &contextKey{"service-tag"}
 	// HttpConnContextKey is used to store http connection.
 	HttpConnContextKey = &contextKey{"http-conn"}
+
+	// IsHighPriorityRequestKey is used to priorityWorkerPool
+	IsHighPriorityRequestKey = &contextKey{HighPriorityKey}
 )
 
 type Handler func(ctx *Context) error
@@ -511,6 +516,11 @@ func (s *Server) serveConn(conn net.Conn) {
 				return
 			}
 			continue
+		}
+
+		_, found := req.Metadata[HighPriorityKey]
+		if found {
+			ctx = share.WithValue(ctx, IsHighPriorityRequestKey, true)
 		}
 
 		if s.pool != nil {
