@@ -43,7 +43,9 @@ func WithWriteTimeout(writeTimeout time.Duration) OptionFn {
 // WithPool sets goroutine pool.
 func WithPool(maxWorkers, maxCapacity int, options ...pond.Option) OptionFn {
 	return func(s *Server) {
-		s.pool = pond.New(maxWorkers, maxCapacity, options...)
+		s.pool = &PondPoolWrapper{
+			pool: pond.New(maxWorkers, maxCapacity, options...),
+		}
 	}
 }
 

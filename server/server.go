@@ -20,11 +20,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/soheilhy/cmux"
+	"golang.org/x/net/websocket"
+
 	"github.com/smallnest/rpcx/log"
 	"github.com/smallnest/rpcx/protocol"
 	"github.com/smallnest/rpcx/share"
-	"github.com/soheilhy/cmux"
-	"golang.org/x/net/websocket"
 )
 
 // ErrServerClosed is returned by the Server's Serve, ListenAndServe after a call to Shutdown or Close.
@@ -69,7 +70,7 @@ var (
 type Handler func(ctx *Context) error
 
 type WorkerPool interface {
-	Submit(task func())
+	Submit(ctx context.Context, task func())
 	StopAndWaitFor(deadline time.Duration)
 	Stop() context.Context
 	StopAndWait()
@@ -365,7 +366,7 @@ func (s *Server) sendResponse(ctx *share.Context, conn net.Conn, err error, req,
 	data := res.EncodeSlicePointer()
 	if s.AsyncWrite {
 		if s.pool != nil {
-			s.pool.Submit(func() {
+			s.pool.Submit(ctx, func() {
 				if s.writeTimeout != 0 {
 					conn.SetWriteDeadline(time.Now().Add(s.writeTimeout))
 				}
@@ -513,7 +514,7 @@ func (s *Server) serveConn(conn net.Conn) {
 		}
 
 		if s.pool != nil {
-			s.pool.Submit(func() {
+			s.pool.Submit(ctx, func() {
 				s.processOneRequest(ctx, req, conn)
 			})
 		} else {
