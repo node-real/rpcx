@@ -1111,3 +1111,14 @@ func validIP6(ipAddress string) bool {
 func InjectHiPri(ctx context.Context) context.Context {
 	return context.WithValue(ctx, share.ReqMetaDataKey, map[string]string{HighPriorityKey: "true"})
 }
+
+func IsHiPri(ctx context.Context) bool {
+	val, ok := ctx.Value(share.ReqMetaDataKey).(map[string]string)
+	if !ok {
+		return false
+	}
+	if v, ok := val[HighPriorityKey]; ok && v == "true" {
+		return true
+	}
+	return false
+}
